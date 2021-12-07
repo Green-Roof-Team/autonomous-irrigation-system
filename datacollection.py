@@ -6,15 +6,20 @@ import requests
 from bs4 import BeautifulSoup
 
 #UUGEAR Initialization
+print("Initalizing...")
 UUGearDevice.setShowLogs(0)
 
 devices = []
 deviceA = UUGearDevice(b'UUGear-Arduino-4465-6200')
 devices.append(["A", deviceA])
+print("Added Device A")
 deviceB= UUGearDevice(b'UUGear-Arduino-9800-2956')
 devices.append(["B", deviceB])
+print("Added Device B")
 deviceC = UUGearDevice(b'UUGear-Arduino-9151-5860')
 devices.append(["C", deviceC])
+print("Added Device C")
+
 for device in devices:
     device[1].detach()
     device[1].stopDaemon()
@@ -24,8 +29,7 @@ url = "https://www.google.com/search?q=weather+carbondale+il"
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36 Edg/96.0.1054.43"
 LANGUAGE = "en, en-gb;q=0.8, en;q=0.7"
 
-
-con = sqlite3.connect('sensor.db')
+con = sqlite3.connect('sensorad.db')
 with con:
     #check if db exists
     c = con.cursor()
