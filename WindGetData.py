@@ -19,9 +19,14 @@ file = open(fileName, "a") #appends
 print("Created file")
 
 while True:
-    getData=str(ser.readline())
-    data=getData[0:][:-2]
-    data2 = re.findall('\d', data)
-    print(data2[0])
+    getData=ser.readline()
+    #print(getData)
+    data = getData.decode("utf-8")
+    
+    #data=getData[0:][:-2]
+    #data = data.replace(" ", ',')
+    print(data)
+    #data2 = re.findall('\t', data)
+    #print(data2)
     file = open(fileName, "a")
-    file.write(data2[0]) #write data with a newline 
+    file.write(data) #write data with a newline 

@@ -15,15 +15,15 @@ int LastValue;
 
 
 void setup() {
-LastValue = 1;
-
-Serial.begin(9600);
-
-pinMode(WindSensorPin, INPUT);
-attachInterrupt(digitalPinToInterrupt(WindSensorPin), isr_rotation, FALLING);
-
-Serial.println("Wind Data");
-Serial.println("Rotations\tMPH\tVane Value\tDirection\tHeading");
+  LastValue = 1;
+  
+  Serial.begin(9600);
+  
+  pinMode(WindSensorPin, INPUT);
+  attachInterrupt(digitalPinToInterrupt(2), isr_rotation, FALLING);
+  
+  Serial.println("Wind Data");
+  Serial.println("Rotations\tMPH\tVane Value\tDirection\tHeading");
 }
 
 
@@ -51,11 +51,11 @@ void loop() {
   CalDirection = CalDirection + 360;
 
 // Print Loop
-  Serial.print(Rotations); Serial.print("\t\t");
-  Serial.print(WindSpeed); Serial.print("\t\t");
+  Serial.print(Rotations); Serial.print(",");
+  Serial.print(WindSpeed); Serial.print(",");
   
-  Serial.print(VaneValue); Serial.print("\t\t");
-  Serial.print(CalDirection); Serial.print("\t\t");
+  Serial.print(VaneValue); Serial.print(",");
+  Serial.print(CalDirection); Serial.print(",");
   getHeading(CalDirection);
   LastValue = CalDirection;
   Serial.println();
