@@ -32,7 +32,7 @@ print("Devices Initialized.")
 
 #Weather Data Initialization
 url = "https://www.google.com/search?q=weather+carbondale+il"
-USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36 Edg/96.0.1054.43"
+USER_AGENT = "Mozilla/5.0 (X11; Linux armv7l) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.197 Safari/537.36"
 LANGUAGE = "en, en-gb;q=0.8, en;q=0.7"
 
 con = sqlite3.connect('sensor.db')
@@ -54,26 +54,36 @@ with con:
             session.headers['Content-Language'] = LANGUAGE
             try:
                 html = session.get(url)
-            except requests.exceptions.RequestException as e:
+                # create a new soup
+                soup = BeautifulSoup(html.text, "html.parser")
+            except Exception as e:
                 print(e)
-                raise SystemExit(e)
+                #continue
+                #raise SystemExit(e)
                 
             # create a new soup
-            soup = BeautifulSoup(html.text, "html.parser")
-            current_temp = soup.find("span", attrs={"id": "wob_tm"}).text
-            current_temp = current_temp + "° F"
-            current_weather = soup.find("span", attrs={"id": "wob_dc"}).text
-            precipitation = soup.find("span", attrs={"id": "wob_pp"}).text
-            humidity = soup.find("span", attrs={"id": "wob_hm"}).text
-            wind_speed = soup.find("span", attrs={"id": "wob_ws"}).text
-            
+            # soup = BeautifulSoup(html.text, "html.parser")
+            #print(soup.prettify())
+            try:
+                current_temp = soup.find("span", attrs={"id": "wob_tm"}).text
+                current_temp = current_temp + "° F"
+                current_weather = soup.find("span", attrs={"id": "wob_dc"}).text
+                precipitation = soup.find("span", attrs={"id": "wob_pp"}).text
+                humidity = soup.find("span", attrs={"id": "wob_hm"}).text
+                wind_speed = soup.find("span", attrs={"id": "wob_ws"}).text
+            except Exception as e:
+                print("Rate limited. Skipping weather data for this iteration..")
+                current_temp = None
+                current_weather = None
+                precipitation = None
+                humidity = None
+                wind_speed = None
             
         #use this section to get data from sensehat
 
         #use this section to get data from sensors
         for d in devices:
             device = d[1]
-            print(device)
             if device.isValid():
                 # EXTERNAL REFERENCE
                 device.analogReference(1)
@@ -82,24 +92,14 @@ with con:
                 date = datetime.datetime.now()
                 for i in range(3,13):
                     name = devicename + str(i-2)
-                    print(name)
                     value = float(device.analogRead(i))
                     voltage = float((device.analogRead(i)/1023.0)*3.3)
-                    if value >= 1023:
-                        print("Sensor offine")
                     inserted = (date, name, value, voltage, current_temp, current_weather, precipitation, humidity, wind_speed)
-                    print(inserted)
-                    c.execute("INSERT INTO sensordata VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);", inserted)
+                    print(name, ":", inserted)
+                c.execute("INSERT INTO sensordata VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);", inserted)
                 c.close()
                 con.commit()
             else:
                 print(d[0], "was unable to connect")
         sleep(300)
-
-
-
-            
-
-	
-
 
