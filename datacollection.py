@@ -3,10 +3,27 @@ import datetime
 from UUGear import *
 import sqlite3
 import requests
+import logging
 from bs4 import BeautifulSoup
 
+#logging initiaization
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+                    datefmt='%m-%d %H:%M',
+                    filename='log.text',
+                    filemode='w')
+console = logging.StreamHandler()
+console.setLevel(logging.INFO)
+formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
+console.setFormatter(formatter)
+logging.getLogger().addHandler(console)
+
+loguugear = logging.getLogger('UUGEAR')
+loginternet = logging.getLogger('Internet')
+logdb = logging.getLogger('Database')
+
 #UUGEAR Initialization
-print("Initalizing...")
+loguugear.info("Initalizing UUGEAR...")
 UUGearDevice.setShowLogs(0)
 
 #initalizing
@@ -27,7 +44,7 @@ for device in devices:
     device[1].stopDaemon()
 devices.clear()
 devices = init_devices()
-print("Devices Initialized.")
+loguugear.info("Devices Initialized.")
 
 
 #Weather Data Initialization
@@ -42,9 +59,9 @@ with con:
     c.execute("SELECT count(name) FROM sqlite_master WHERE type='table' AND name='sensordata';")
     if c.fetchone()[0] < 1 : 
         c.execute("CREATE TABLE sensordata(timestamp DATETIME, sensor TEXT, value REAL, voltage REAL, temperature TEXT, weather TEXT, precipitation TEXT, humidity TEXT, wind_speed TEXT);") 
-        print("Sensordata table created")
+        logdb.info("Sensordata table created")
     c.close()
-    print("Connected to database. Data collection beginning...")
+    logdb.info("Connected to database. Data collection beginning...")
 
     while True:
         #use this section to get weather data
@@ -57,7 +74,7 @@ with con:
                 # create a new soup
                 soup = BeautifulSoup(html.text, "html.parser")
             except Exception as e:
-                print(e)
+                loginternet.debug(e)
                 #continue
                 #raise SystemExit(e)
                 
@@ -72,7 +89,7 @@ with con:
                 humidity = soup.find("span", attrs={"id": "wob_hm"}).text
                 wind_speed = soup.find("span", attrs={"id": "wob_ws"}).text
             except Exception as e:
-                print("Rate limited. Skipping weather data for this iteration..")
+                loginternet.debug("Rate limited. Skipping weather data for this iteration..")
                 current_temp = None
                 current_weather = None
                 precipitation = None
@@ -95,11 +112,11 @@ with con:
                     value = float(device.analogRead(i))
                     voltage = float((device.analogRead(i)/1023.0)*3.3)
                     inserted = (date, name, value, voltage, current_temp, current_weather, precipitation, humidity, wind_speed)
-                    print(name, ":", inserted)
+                    logdb.debug(name, ":", inserted)
                 c.execute("INSERT INTO sensordata VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);", inserted)
                 c.close()
                 con.commit()
             else:
-                print(d[0], "was unable to connect")
+                loguugear.debug(d[0], "was unable to connect")
         sleep(300)
 
