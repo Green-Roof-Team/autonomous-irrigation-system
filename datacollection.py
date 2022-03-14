@@ -16,7 +16,7 @@ console = logging.StreamHandler()
 console.setLevel(logging.INFO)
 formatter = logging.Formatter('%(name)-12s: %(levelname)-8s %(message)s')
 console.setFormatter(formatter)
-logging.getLogger().addHandler(console)
+logging.getLogger().addHandler(logging.StreamHandler())
 
 loguugear = logging.getLogger('UUGEAR')
 loginternet = logging.getLogger('Internet')
@@ -75,6 +75,8 @@ with con:
                 soup = BeautifulSoup(html.text, "html.parser")
             except Exception as e:
                 loginternet.debug(e)
+                #print("L+ratio")
+                #raise ConnectionError(e
                 #continue
                 #raise SystemExit(e)
                 
@@ -112,11 +114,34 @@ with con:
                     value = float(device.analogRead(i))
                     voltage = float((device.analogRead(i)/1023.0)*3.3)
                     inserted = (date, name, value, voltage, current_temp, current_weather, precipitation, humidity, wind_speed)
-                    logdb.debug(name, ":", inserted)
-                c.execute("INSERT INTO sensordata VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);", inserted)
+                    logdb.debug(f"{name}: {inserted}")
+                    c.execute("INSERT INTO sensordata VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);", inserted)
                 c.close()
                 con.commit()
             else:
-                loguugear.debug(d[0], "was unable to connect")
+                loguugear.debug(f"{d[0]} was unable to connect")
         sleep(300)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
